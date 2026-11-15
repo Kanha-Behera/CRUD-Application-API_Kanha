@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Students CRUD API: live demo</title>
+<style>
+:root{--bg:#f5f6f8;--surface:#fff;--ink:#16202e;--muted:#5d6b7e;--line:#dde2ea;--accent:#1f4fd8;--accent-ink:#fff;--ok:#0f7a4d;--warn:#a15c00;--err:#b42318;--code:#0f1a2b;--code-ink:#d6e2f5;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e141d;--surface:#161e2a;--ink:#e6ecf5;--muted:#93a1b5;--line:#27323f;--accent:#6e96ff;--accent-ink:#0b1220;--ok:#4fd49a;--warn:#f0b04a;--err:#ff8a7a;--code:#0a0f17;--code-ink:#c9d7ee;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e141d;--surface:#161e2a;--ink:#e6ecf5;--muted:#93a1b5;--line:#27323f;--accent:#6e96ff;--accent-ink:#0b1220;--ok:#4fd49a;--warn:#f0b04a;--err:#ff8a7a;--code:#0a0f17;--code-ink:#c9d7ee;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 16px 40px}
+h1{font-size:26px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:0 0 20px;max-width:70ch}
+.grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{font-size:15px;margin:0 0 12px}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:3px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.row.one{grid-template-columns:1fr}
+.err{color:var(--err);font-size:12px;min-height:0}
+button{font:inherit;cursor:pointer;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 12px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button.danger{color:var(--err)}
+button.small{padding:4px 9px;font-size:13px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:13px;border-bottom:1px solid var(--line);padding:6px 8px}
+td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.btns{white-space:nowrap;text-align:right}
+.empty{color:var(--muted);padding:16px 8px}
+.pager{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--muted);font-size:13px}
+.log{max-height:520px;overflow:auto;display:flex;flex-direction:column;gap:8px}
+.entry{background:var(--code);color:var(--code-ink);border-radius:8px;padding:10px 12px;font:12.5px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.entry .top{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.m{font-weight:700}.s2{color:#5fd3a0}.s4{color:#f5b85a}.s5{color:#ff8a7a}
+.entry pre{margin:6px 0 0;white-space:pre-wrap;word-break:break-word;color:#9fb2cf;max-height:140px;overflow:auto}
+.hint{font-size:13px;color:var(--muted);margin:0 0 10px}
+.toolbar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar input{flex:1 1 180px}
+@media (prefers-reduced-motion:no-preference){.entry.new{animation:flash .6s}@keyframes flash{from{outline:2px solid var(--accent)}to{outline:2px solid transparent}}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Students CRUD API</h1>
+  <p class="sub">A live demo of the REST endpoints. The same routes, validation rules, and status codes as the Express server run here in your browser, and every request appears in the console. Data is saved in this browser only.</p>
+  <div class="grid">
+    <div>
+      <div class="panel">
+        <h2 id="formTitle">Add a student</h2>
+        <div class="row"><div><label for="name">Name</label><input id="name" autocomplete="off"><div class="err" id="e_name"></div></div>
+        <div><label for="email">Email</label><input id="email" autocomplete="off"><div class="err" id="e_email"></div></div></div>
+        <div class="row"><div><label for="course">Course</label><input id="course" autocomplete="off"><div class="err" id="e_course"></div></div>
+        <div><label for="year">Year (1–6)</label><input id="year" type="number" inputmode="numeric"><div class="err" id="e_year"></div></div></div>
+        <div class="actions"><button class="primary" id="save">Create student</button><button id="cancel" hidden>Cancel edit</button></div>
+      </div>
+      <div class="panel">
+        <h2>Students</h2>
+        <div class="toolbar"><input id="search" placeholder="Search by name or email" aria-label="Search students"><button id="reset">Reset demo data</button></div>
+        <div class="scroll"><table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Course</th><th>Year</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+        <div class="pager"><span id="count"></span><span class="actions"><button class="small" id="prev">Previous</button><button class="small" id="next">Next</button></span></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h2>Send your own request</h2>
+        <p class="hint">Try invalid data, a duplicate email, or a missing ID to see the error responses.</p>
+        <div class="row" style="grid-template-columns:110px 1fr">
+          <select id="rm" aria-label="Method"><option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option></select>
+          <input id="rp" value="/api/students/1" aria-label="Path">
+        </div>
+        <div class="row one"><textarea id="rb" rows="3" placeholder='JSON body, e.g. {"year":3}' aria-label="JSON body"></textarea></div>
+        <button class="primary" id="send">Send request</button>
+      </div>
+      <div class="panel">
+        <h2>Request console</h2>
+        <div class="log" id="log"><div class="empty">Requests will appear here as you create, edit, or delete students.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+var KEY='students-crud-demo-v1',PAGE=5,state,page=1,editing=null,logCount=0;
+function seed(){return{next:5,rows:[
+ {id:1,name:'Asha Rao',email:'asha@example.com',course:'CSE',year:2},
+ {id:2,name:'Rohan Das',email:'rohan@example.com',course:'ECE',year:3},
+ {id:3,name:'Meera Nair',email:'meera@example.com',course:'CSE',year:1},
+ {id:4,name:'Kabir Singh',email:'kabir@example.com',course:'ME',year:4}].map(stamp)}}
+function stamp(r){var t=new Date().toISOString().slice(0,19).replace('T',' ');r.created_at=r.created_at||t;r.updated_at=r.updated_at||t;return r}
+function load(){try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.rows))return s}catch(e){}return seed()}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+state=load();
+
+var EMAIL=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function validate(b,partial){
+ var errors={},v={};b=b&&typeof b==='object'&&!Array.isArray(b)?b:{};
+ function has(k){return b[k]!==undefined}
+ ['name','email','course','year'].forEach(function(k){if(!partial&&!has(k))errors[k]=k+' is required'});
+ if(has('name')){var n=typeof b.name==='string'?b.name.trim():'';if(n.length<2||n.length>100)errors.name='name must be 2-100 characters';else v.name=n}
+ if(has('email')){var e=typeof b.email==='string'?b.email.trim().toLowerCase():'';if(!EMAIL.test(e))errors.email='email must be a valid address';else v.email=e}
+ if(has('course')){var c=typeof b.course==='string'?b.course.trim():'';if(!c)errors.course='course must be a non-empty string';else v.course=c}
+ if(has('year')){if(!Number.isInteger(b.year)||b.year<1||b.year>6)errors.year='year must be an integer from 1 to 6';else v.year=b.year}
+ if(partial&&!Object.keys(b).length)errors._body='provide at least one field to update';
+ return{errors:errors,value:v}}
+function bad(d){return{status:400,body:{error:'Validation failed',details:d}}}
+function now(){return new Date().toISOString().slice(0,19).replace('T',' ')}
+function emailTaken(email,exceptId){return state.rows.some(function(r){return r.email===email&&r.id!==exceptId})}
+
+function route(method,url,body){
+ var u;try{u=new URL(url,'http://x')}catch(e){return{status:400,body:{error:'Invalid URL'}}}
+ var p=u.pathname.split('/').filter(Boolean);
+ if(p[0]==='health'&&method==='GET')return{status:200,body:{status:'ok'}};
+ if(p[0]!=='api'||p[1]!=='students'||p.length>3)return{status:404,body:{error:'Route not found'}};
+ var id=null;
+ if(p.length===3){id=Number(p[2]);if(!Number.isInteger(id)||id<1)return{status:400,body:{error:'id must be a positive integer'}}}
+ var q=u.searchParams,r;
+ if(id===null){
+  if(method==='POST'){var vr=validate(body,false);if(Object.keys(vr.errors).length)return bad(vr.errors);
+   if(emailTaken(vr.value.email,0))return{status:409,body:{error:'A student with that email already exists'}};
+   r=stamp(Object.assign({id:state.next++},vr.value));state.rows.push(r);persist();return{status:201,body:r}}
+  if(method==='GET'){
+   var pg=Math.max(parseInt(q.get('page'),10)||1,1),lim=Math.min(Math.max(parseInt(q.get('limit'),10)||10,1),100);
+   var list=state.rows.filter(function(x){
+    if(q.get('course')&&x.course!==q.get('course'))return false;
+    if(q.get('year')&&x.year!==Number(q.get('year')))return false;
+    var s=(q.get('search')||'').toLowerCase();
+    return !s||x.name.toLowerCase().indexOf(s)>-1||x.email.toLowerCase().indexOf(s)>-1}).sort(function(a,b){return a.id-b.id});
+   return{status:200,body:{data:list.slice((pg-1)*lim,pg*lim),page:pg,limit:lim,total:list.length,pages:Math.ceil(list.length/lim)}}}
+  return{status:404,body:{error:'Route not found'}}}
+ var idx=state.rows.findIndex(function(x){return x.id===id});
+ if(method==='GET')return idx<0?{status:404,body:{error:'Student not found'}}:{status:200,body:state.rows[idx]};
+ if(method==='PUT'||method==='PATCH'){
+  if(idx<0)return{status:404,body:{error:'Student not found'}};
+  var v2=validate(body,method==='PATCH');if(Object.keys(v2.errors).length)return bad(v2.errors);
+  if(v2.value.email&&emailTaken(v2.value.email,id))return{status:409,body:{error:'A student with that email already exists'}};
+  Object.assign(state.rows[idx],v2.value,{updated_at:now()});persist();return{status:200,body:state.rows[idx]}}
+ if(method==='DELETE'){if(idx<0)return{status:404,body:{error:'Student not found'}};state.rows.splice(idx,1);persist();return{status:204,body:null}}
+ return{status:404,body:{error:'Route not found'}}}
+
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function api(method,url,body,silent){
+ var res=route(method,url,body);if(!silent)log(method,url,body,res);return res}
+function log(method,url,body,res){
+ var box=document.getElementById('log');if(!logCount)box.innerHTML='';logCount++;
+ var cls=res.status<300?'s2':res.status<500?'s4':'s5';
+ var div=document.createElement('div');div.className='entry new';
+ var req=body!==undefined&&body!==null&&method!=='GET'&&method!=='DELETE'?'<pre>'+esc(typeof body==='string'?body:JSON.stringify(body))+'</pre>':'';
+ div.innerHTML='<div class="top"><span class="m">'+method+'</span><span>'+esc(url)+'</span><span class="'+cls+'">'+res.status+'</span></div>'+req+
+  (res.body!==null?'<pre>'+esc(JSON.stringify(res.body,null,2))+'</pre>':'<pre>(no content)</pre>');
+ box.insertBefore(div,box.firstChild);while(box.children.length>30)box.removeChild(box.lastChild)}
+
+function $(id){return document.getElementById(id)}
+function render(logIt){
+ var s=$('search').value.trim();
+ var url='/api/students?limit='+PAGE+'&page='+page+(s?'&search='+encodeURIComponent(s):'');
+ var res=api('GET',url,null,!logIt);
+ if(res.body.pages&&page>res.body.pages){page=res.body.pages;return render(false)}
+ var tb=$('rows');
+ tb.innerHTML=res.body.data.length?res.body.data.map(function(r){return'<tr><td>'+r.id+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.email)+'</td><td>'+esc(r.course)+'</td><td>'+r.year+
+  '</td><td class="btns"><button class="small" data-edit="'+r.id+'">Edit</button> <button class="small danger" data-del="'+r.id+'">Delete</button></td></tr>'}).join(''):
+  '<tr><td colspan="6" class="empty">No students match. Add one with the form above.</td></tr>';
+ $('count').textContent=res.body.total+' student'+(res.body.total===1?'':'s')+' · page '+res.body.page+' of '+Math.max(res.body.pages,1);
+ $('prev').disabled=page<=1;$('next').disabled=page>=res.body.pages}
+function clearErr(){['name','email','course','year'].forEach(function(k){$('e_'+k).textContent=''})}
+function setEditing(row){
+ editing=row?row.id:null;
+ $('formTitle').textContent=row?'Edit student #'+row.id:'Add a student';
+ $('save').textContent=row?'Save changes':'Create student';$('cancel').hidden=!row;
+ ['name','email','course','year'].forEach(function(k){$(k).value=row?row[k]:''});clearErr()}
+function formBody(){var y=$('year').value.trim();return{name:$('name').value,email:$('email').value,course:$('course').value,year:y===''?undefined:Number(y)}}
+
+$('save').onclick=function(){
+ clearErr();var body=formBody();
+ var res=editing?api('PUT','/api/students/'+editing,body):api('POST','/api/students',body);
+ if(res.status===400){var d=res.body.details||{};Object.keys(d).forEach(function(k){if($('e_'+k))$('e_'+k).textContent=d[k]});return}
+ if(res.status===409){$('e_email').textContent=res.body.error;return}
+ if(res.status===404){setEditing(null);render(false);return}
+ setEditing(null);render(false)};
+$('cancel').onclick=function(){setEditing(null)};
+$('rows').onclick=function(e){
+ var ed=e.target.getAttribute('data-edit'),dl=e.target.getAttribute('data-del');
+ if(ed){var r=api('GET','/api/students/'+ed);if(r.status===200){setEditing(r.body);window.scrollTo({top:0,behavior:'smooth'})}}
+ if(dl){api('DELETE','/api/students/'+dl);if(editing===Number(dl))setEditing(null);render(false)}};
+$('search').oninput=function(){page=1;render(true)};
+$('prev').onclick=function(){page--;render(true)};
+$('next').onclick=function(){page++;render(true)};
+$('reset').onclick=function(){state=seed();persist();page=1;setEditing(null);$('search').value='';render(false);
+ var box=$('log');box.innerHTML='<div class="empty">Demo data reset. Requests will appear here.</div>';logCount=0};
+$('send').onclick=function(){
+ var m=$('rm').value,raw=$('rb').value.trim(),body;
+ if(raw){try{body=JSON.parse(raw)}catch(e){log(m,$('rp').value,raw,{status:400,body:{error:'Invalid JSON body'}});return}}
+ api(m,$('rp').value.trim(),body);render(false)};
+render(false);
+})();
+</script>
+</body>
+</html>
